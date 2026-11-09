@@ -1,0 +1,76 @@
+// ==============================================================================
+// Power BI DAX Measures & Business Logic
+// Project: Business Operations & CTM Open Enquiries Dashboard
+// Author: Mohd Jasim Khan
+// ==============================================================================
+
+// --- High-Level Executive KPIs ---
+Total Enquiries = COUNTROWS('Open Enquiries')
+
+Total Bookings = SUM('Open Enquiries'[Number of Bookings])
+
+Total Confirmed = 
+CALCULATE(
+    COUNTROWS('Open Enquiries'),
+    'Open Enquiries'[Status] = "Confirmed"
+)
+
+Total Not Confirmed = 
+CALCULATE(
+    COUNTROWS('Open Enquiries'),
+    'Open Enquiries'[Status] = "Not Confirmed"
+)
+
+Confirmation Rate = 
+DIVIDE(
+    [Total Confirmed],
+    [Total Enquiries],
+    0
+)
+
+Unconfirmed Rate = 
+DIVIDE(
+    [Total Not Confirmed],
+    [Total Enquiries],
+    0
+)
+
+// --- Operational & Failure Root-Cause Tracking ---
+Pending Action Count = 
+CALCULATE(
+    COUNTROWS('Open Enquiries'),
+    NOT(ISBLANK('Open Enquiries'[Action Required]))
+)
+
+System Error Failures = 
+CALCULATE(
+    COUNTROWS('Open Enquiries'),
+    SEARCH("System", 'Open Enquiries'[Reason for Failure], 1, 0) > 0
+)
+
+Rate Discrepancy Failures = 
+CALCULATE(
+    COUNTROWS('Open Enquiries'),
+    SEARCH("Rate", 'Open Enquiries'[Reason for Failure], 1, 0) > 0
+)
+
+Inventory Availability Failures = 
+CALCULATE(
+    COUNTROWS('Open Enquiries'),
+    SEARCH("Inventory", 'Open Enquiries'[Reason for Failure], 1, 0) > 0
+)
+
+// --- Agent Resolution & Workload Performance ---
+Enquiries Per Agent = 
+DIVIDE(
+    [Total Enquiries],
+    DISTINCTCOUNT('Open Enquiries'[Agent Name]),
+    0
+)
+
+Agent Confirmation % = 
+DIVIDE(
+    [Total Confirmed],
+    CALCULATE([Total Enquiries], ALLSELECTED('Open Enquiries'[Agent Name])),
+    0
+)
